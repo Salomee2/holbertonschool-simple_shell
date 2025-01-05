@@ -1,34 +1,35 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/wait.h>
+#include "shell.h"
+/**
+ * execute_command - Executes a command xith execve
+ * @command: command to execute
+ */
 
 void execute_command(char *command)
 {
-	pid_t pid = fork();
-	
+	char *argv[2];
+	pid_t pid;
+	int status;
+
+	argv[0] = command;
+	argv[1] = NULL;
+
+	pid = fork();
 	if (pid == -1)
 	{
-		perror("fork");
-		exit(EXIT_FAILURE);
+		perror("Error:");
+		return;
 	}
 
 	if (pid == 0)
 	{
-		char *args[2];
-		args[0] = command;
-		args[1] = NULL;
-		if (execve(args[0], args, NULL) == -1)
+		if (execve(command, argv, environ) == -1)
 		{
-			perror("./hsh");
+			perror(command);
+			exit(EXIT_FAILURE);
 		}
-		exit(EXIT_FAILURE);
 	}
 	else
 	{
-		wait(NULL);
+		wait(&status);
 	}
 }
-
