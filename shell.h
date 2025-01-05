@@ -2,5 +2,4 @@
 #define SHELL_H
 
 void execute_command(char *command);
-
 #endif
