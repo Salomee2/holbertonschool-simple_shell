@@ -9,7 +9,7 @@ int main(void)
 	char *line = NULL;
 	size_t len = 0;
 	ssize_t nread;
-	int interactive = isatty(STDIN_FILENO); 
+	int interactive = isatty(STDIN_FILENO);
 
 	while (1)
 	{
@@ -24,6 +24,6 @@ int main(void)
 	}
 	free(line);
 	if (interactive)
-		write (STDOUT_FILENO, "\n", 1);
-	return(0);
+		write(STDOUT_FILENO, "\n", 1);
+	return (0);
 }
