@@ -15,15 +15,23 @@ int main(void)
 	{
 		if (interactive)
 			write(STDOUT_FILENO, "($) ", 4);
+
 		nread = getline(&line, &len, stdin);
 		if (nread == -1)
+		{
+			if (interactive)
+				write(STDOUT_FILENO, "\n", 1);
 			break;
+		}
+
 		if (line[nread - 1] == '\n')
 		line[nread - 1] = '\0';
+
+		if (line[0] == '\0')
+			continue;
+
 		execute_command(line);
 	}
 	free(line);
-	if (interactive)
-		write(STDOUT_FILENO, "\n", 1);
 	return (0);
 }
