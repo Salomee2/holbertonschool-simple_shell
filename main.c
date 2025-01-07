@@ -24,6 +24,12 @@ int main(void)
 	{
 		write(1, "$ ", 2);
 		n_char = getline(&buffer, &buffer_size, stdin);
+		if (n_char == -1)
+		{
+			perror("getline");
+			break;
+		}
+
 		token = strtok(buffer, "\t\n");
 		while (token)
 		{
