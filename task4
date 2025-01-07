@@ -1,0 +1,72 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+/**
+ * find_command_in_path - Finds the full path of a command in the PATH.
+ * @command: The command to search for.
+ *
+ * Return: A malloc'ed string with the full path if found, NULL otherwise.
+ */
+char *find_command_in_path(char *command)
+{
+char *path = getenv("PATH");
+char *dir = NULL, *full_path = NULL;
+char *path_copy = strdup(path);
+char *token = strtok(path_copy, ":");
+while (token) {
+dir = token;
+full_path = malloc(strlen(dir) + strlen(command) + 2);
+sprintf(full_path, "%s/%s", dir, command);
+if (access(full_path, X_OK) == 0) {
+free(path_copy);
+return full_path;
+}
+free(full_path);
+token = strtok(NULL, ":");
+}
+tree(path_copy);
+return NULL; // Command not found
+}
+
+/**
+ * main - A simple UNIX shell implementation handling PATH.
+ *
+ * Return: Always 0.
+ */
+int main() {
+char *line = NULL;
+size_t len = 0;
+ssize_t nread;
+while (1) {
+printf("$ ");
+nread = getline(&line, &len, stdin);
+if (nread == -1) {
+printf("\n");
+free(line);
+exit(0); // EOF (Ctrl+D)
+}
+line[nread - 1] = '\0'; // Remove newline character
+char *cmd_path = find_command_in_path(line);
+if (cmd_path) {
+if (fork() == 0) {
+char *args[] = {cmd_path, NULL};
+execve(cmd_path, args, environ);
+perror("execve");
+exit(1);
+}
+else
+{
+wait(NULL);
+}
+free(cmd_path);
+}
+else
+{
+printf("Command not found: %s\n", line);
+}
+}
+return 0;
+}
