@@ -5,6 +5,12 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+/**
+ * get_path - Finds the full path of a command using the PATH environment variable.
+ * @cmd: The command to locate.
+ *
+ * Return: The full path of the command if found, or NULL if not found.
+ */
 char *get_path(char *cmd)
 {
     char *path = getenv("PATH");
@@ -24,6 +30,14 @@ char *get_path(char *cmd)
     return NULL;
 }
 
+/**
+ * main - Entry point of the simple shell program.
+ *
+ * This program displays a prompt, reads user input, and executes commands.
+ * It also handles the "exit" built-in command to terminate the shell.
+ *
+ * Return: Always 0 on success.
+ */
 int main(void)
 {
     char *line = NULL, *cmd_path;
@@ -33,12 +47,12 @@ int main(void)
     while (1)
     {
         printf("$ ");
-        if (getline(&line, &len, stdin) == -1)
+        if (getline(&line, &len, stdin) == -1) /* Read user input */
             break;
 
         line[strcspn(line, "\n")] = '\0';
 
-        if (strcmp(line, "exit") == 0)
+        if (strcmp(line, "exit") == 0) /* Check for the "exit" command */
             break;
 
         cmd_path = get_path(line);
@@ -57,9 +71,13 @@ int main(void)
             exit(EXIT_FAILURE);
         }
         else if (pid > 0)
+        {
             wait(NULL);
+        }
         else
+        {
             perror("fork");
+        }
 
         free(cmd_path);
     }
