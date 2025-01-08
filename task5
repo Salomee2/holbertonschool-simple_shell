@@ -1,0 +1,36 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+/**
+ * main - A simple shell implementation with the "exit" command.
+ *
+ * Return: Always 0.
+ */
+
+int main() {
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t nread;
+
+    while (1) {
+        printf("$ ");
+        nread = getline(&line, &len, stdin);
+
+        if (nread == -1) {
+            printf("\n");
+            free(line);
+            exit(0); // EOF (Ctrl+D)
+        }
+
+        line[nread - 1] = '\0'; // Remove newline character
+
+        if (strcmp(line, "exit") == 0) {
+            free(line);
+            exit(0);
+        } else {
+            printf("Unsupported command: %s\n", line);
+        }
+    }
+
+    return 0;
+}
