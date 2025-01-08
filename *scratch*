@@ -7,7 +7,9 @@
 
 char *get_path(char *cmd)
 {
-    char *path = getenv("PATH"), *token, full_path[1024];
+    char *path = getenv("PATH");
+    char *token, full_path[1024];
+
     if (!path)
         return NULL;
 
@@ -36,7 +38,7 @@ int main(void)
 
         line[strcspn(line, "\n")] = '\0';
 
-        if (strcmp(line, "exit") == 0) /* Check for 'exit' command */
+        if (strcmp(line, "exit") == 0)
             break;
 
         cmd_path = get_path(line);
