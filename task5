@@ -1,36 +1,67 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
-/**
- * main - A simple shell implementation with the "exit" command.
- *
- * Return: Always 0.
- */
+#include <sys/types.h>
+#include <sys/wait.h>
 
-int main() {
-    char *line = NULL;
+char *get_path(char *cmd)
+{
+    char *path = getenv("PATH"), *token, full_path[1024];
+    if (!path)
+        return NULL;
+
+    token = strtok(path, ":");
+    while (token)
+    {
+        snprintf(full_path, sizeof(full_path), "%s/%s", token, cmd);
+        if (access(full_path, X_OK) == 0)
+            return strdup(full_path);
+        token = strtok(NULL, ":");
+    }
+    return NULL;
+}
+
+int main(void)
+{
+    char *line = NULL, *cmd_path;
     size_t len = 0;
-    ssize_t nread;
+    pid_t pid;
 
-    while (1) {
+    while (1)
+    {
         printf("$ ");
-        nread = getline(&line, &len, stdin);
+        if (getline(&line, &len, stdin) == -1)
+            break;
 
-        if (nread == -1) {
-            printf("\n");
-            free(line);
-            exit(0); // EOF (Ctrl+D)
+        line[strcspn(line, "\n")] = '\0';
+
+        if (strcmp(line, "exit") == 0) /* Check for 'exit' command */
+            break;
+
+        cmd_path = get_path(line);
+        if (!cmd_path)
+        {
+            perror("./hsh");
+            continue;
         }
 
-        line[nread - 1] = '\0'; // Remove newline character
-
-        if (strcmp(line, "exit") == 0) {
-            free(line);
-            exit(0);
-        } else {
-            printf("Unsupported command: %s\n", line);
+        pid = fork();
+        if (pid == 0)
+        {
+            char *args[] = {cmd_path, NULL};
+            execve(cmd_path, args, NULL);
+            perror("./hsh");
+            exit(EXIT_FAILURE);
         }
+        else if (pid > 0)
+            wait(NULL);
+        else
+            perror("fork");
+
+        free(cmd_path);
     }
 
+    free(line);
     return 0;
 }
