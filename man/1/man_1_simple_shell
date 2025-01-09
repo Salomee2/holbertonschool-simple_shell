@@ -1,0 +1,42 @@
+.\" Manpage for simple_shell
+.TH SIMPLE_SHELL 1 "January 2025" "1.0" "Simple Shell Manual"
+.SH NAME
+simple_shell \- a simple UNIX shell implementation
+.SH SYNOPSIS
+.B simple_shell
+.SH DESCRIPTION
+The simple_shell is a basic command-line interpreter for UNIX-like systems. It provides an interactive shell interface where users can execute system commands by typing them at the prompt.
+
+The shell supports basic command execution but does not handle advanced features like pipes, redirects, or built-in commands.
+
+.SH USAGE
+To start the shell, run:
+.B ./hsh
+
+The prompt will appear, and you can type commands to be executed.
+
+.SH COMMANDS
+The simple_shell currently supports the following:
+
+.TP
+.B <command>
+Executes the given command by searching the directories in the system's PATH variable. If the command cannot be found, it prints an error message.
+
+.SH EXAMPLES
+Run the shell interactively:
+.TP
+$ ./hsh
+$ /bin/ls
+$ exit
+
+Run the shell in non-interactive mode:
+.TP
+$ echo "/bin/ls" | ./hsh
+$ cat test_ls_2 | ./hsh
+
+.SH AUTHOR
+Written byPerton Couriaut Salomée and Habouchi Karim.
+
+.SH SEE ALSO
+.B sh(1)
+
