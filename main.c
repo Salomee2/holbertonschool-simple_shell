@@ -8,58 +8,59 @@
 
 int main(void)
 {
-	char *line = NULL;
-	size_t len = 0;
-	pid_t pid;
-	char *args[2];
-	char *cmd_path;
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t nread;
+    pid_t pid;
+    char *args[2];
 
-	while (1)
-	{
-		printf("$ ");
-		if (getline(&line, &len, stdin) == -1)
-		{
-			printf("\n");
-			break;
-		}
-		line[strcspn(line, "\n")] = '\0';
+    while (1)
+    {
+        if (isatty(STDIN_FILENO))
+            printf("$ ");
 
-		if (strlen(line) == 0)
-			continue;
+        nread = getline(&line, &len, stdin);
+        if (nread == -1)
+        {
+            if (feof(stdin))
+            {
+                printf("\n");
+                free(line);
+                exit(0);
+            }
+            perror("getline");
+            free(line);
+            exit(1);
+        }
 
-		cmd_path = find_command_in_path(line);
+        line[strcspn(line, "\n")] = '\0';
 
-		if (cmd_path)
-		{
-			pid = fork();
-			if (pid == 0)
-			{
-				args[0] = cmd_path;
-				args[1] = NULL;
+        if (strlen(line) == 0)
+            continue;
 
-				if (execve(cmd_path, args, NULL) == -1)
-				{
-					perror("execve");
-					exit(EXIT_FAILURE);
-				}
-			}
-			else if (pid > 0)
-			{
-				wait(NULL);
-			}
-			else
-			{
-				perror("fork");
-			}
-			free(cmd_path);
-		}
-		else
-		{
-			printf("Command not found: %s\n", line);
-		}
-	}
+        args[0] = line;
+        args[1] = NULL;
 
-	free(line);
-	return (0);
+        pid = fork();
+        if (pid == 0)
+        {
+            if (execve(line, args, NULL) == -1)
+            {
+                perror("./hsh");
+                exit(EXIT_FAILURE);
+            }
+        }
+        else if (pid > 0)
+        {
+            wait(NULL);
+        }
+        else
+        {
+            perror("fork");
+        }
+    }
+
+    free(line);
+    return (0);
 }
 

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include "shell.h"
 
 char *find_command_in_path(char *command)
 {
@@ -14,8 +15,14 @@ char *find_command_in_path(char *command)
 	{
 		dir = token;
 		full_path = malloc(strlen(dir) + strlen(command) + 2);
-		sprintf(full_path, "%s/%s", dir, command);
+		if (!full_path)
+		{
+			perror("malloc failed");
+			free(path_copy);
+			return NULL;
+		}
 
+		sprintf(full_path, "%s/%s", dir, command);
 		if (access(full_path, X_OK) == 0)
 		{
 			free(path_copy);
@@ -26,6 +33,6 @@ char *find_command_in_path(char *command)
 	}
 
 	free(path_copy);
-	return (NULL); /* Command not found */
+	return (NULL);
 }
 
