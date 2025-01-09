@@ -10,5 +10,6 @@
 #include <sys/stat.h>
 
 void execute_command(char *command);
+char *find_command_in_path(char *command);
 
 #endif

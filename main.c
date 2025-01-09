@@ -4,6 +4,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include "shell.h"
 
 int main(void)
 {
@@ -11,6 +12,7 @@ int main(void)
 	size_t len = 0;
 	pid_t pid;
 	char *args[2];
+	char *cmd_path;
 
 	while (1)
 	{
@@ -20,30 +22,40 @@ int main(void)
 			printf("\n");
 			break;
 		}
-
 		line[strcspn(line, "\n")] = '\0';
 
 		if (strlen(line) == 0)
 			continue;
-		args[0] = line;
-		args[1] = NULL;
 
-		pid = fork();
-		if (pid == 0)
+		cmd_path = find_command_in_path(line);
+
+		if (cmd_path)
 		{
-			if (execve(line, args, NULL) == -1)
+			pid = fork();
+			if (pid == 0)
 			{
-				perror(line);
-				exit(EXIT_FAILURE);
+				args[0] = cmd_path;
+				args[1] = NULL;
+
+				if (execve(cmd_path, args, NULL) == -1)
+				{
+					perror("execve");
+					exit(EXIT_FAILURE);
+				}
 			}
-		}
-		else if (pid > 0)
-		{
-			wait(NULL);
+			else if (pid > 0)
+			{
+				wait(NULL);
+			}
+			else
+			{
+				perror("fork");
+			}
+			free(cmd_path);
 		}
 		else
 		{
-			perror("fork");
+			printf("Command not found: %s\n", line);
 		}
 	}
 
