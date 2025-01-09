@@ -35,6 +35,10 @@ int main(void)
 		}
 		else if (pid > 0)
 		{
+			wait(NULL);
+		}
+		else
+		{
 			perror("fork");
 		}
 	}
