@@ -3,49 +3,70 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include "shell.h"
 
 int main(void)
 {
-	char *command = NULL;
-	size_t bufsize = 0;
+	char *line = NULL;
+	size_t len = 0;
 	pid_t pid;
+	char *cmd_path;
+	char *token;
+	char *args[100];
+	int i;
 
 	while (1)
 	{
 		printf("$ ");
-		if (getline(&command, &bufsize, stdin) == -1)
+		if (getline(&line, &len, stdin) == -1)
 		{
-			if (feof(stdin))
-			{
-				free(command);
-				printf("\n");
-				break;
-			}
-			perror("Error reading command");
-			free(command);
-			exit(EXIT_FAILURE);
+			printf("\n");
+			break;
 		}
-		command[strcspn(command, "\n")] = '\0';
-		if (strlen(command) == 0)
+
+		line[strcspn(line, "\n")] = '\0';
+		if (strlen(line) == 0)
 			continue;
 
-		pid = fork();
-		if (pid == 0)
+		i = 0;
+		token = strtok(line, " ");
+		while (token != NULL)
 		{
-			if (execlp(command, command, NULL) == -1)
-				perror(command);
-			exit(EXIT_FAILURE);
+			args[i] = token;
+			i++;
+			token = strtok(NULL, " ");
 		}
-		else if (pid > 0)
+		args[i] = NULL;
+
+		cmd_path = find_command_in_path(args[0]);
+		if (cmd_path)
 		{
-			wait(NULL);
+			pid = fork();
+			if (pid == 0)
+			{
+				if (execve(cmd_path, args, NULL) == -1)
+				{
+					perror(args[0]);
+					exit(EXIT_FAILURE);
+				}
+			}
+			else if (pid > 0)
+			{
+				wait(NULL);
+			}
+			else
+			{
+				perror("fork");
+			}
+			free(cmd_path);
 		}
 		else
 		{
-			perror("Fork failed");
+			printf("./hsh: 1: %s: not found\n", args[0]);
 		}
 	}
 
+	free(line);
 	return (0);
 }
 
