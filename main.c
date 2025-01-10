@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/wait.h>
 #include "shell.h"
 
 int main(void)
@@ -26,6 +25,12 @@ int main(void)
 
 		if (strlen(line) == 0)
 			continue;
+
+		if (strcmp(line, "exit") == 0)
+		{
+			free(line);
+			exit(0);
+		}
 
 		cmd_path = find_command_in_path(line);
 
