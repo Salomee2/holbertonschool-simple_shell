@@ -4,60 +4,63 @@
 #include <unistd.h>
 #include "shell.h"
 
-int main(void)
+extern char **environ;
+
+int print_env(char **args)
+{
+	int i;
+
+	if (args[1] != NULL)
+	{
+		fprintf(stderr, "env: too many arguments\n");
+		return (1);
+	}
+
+	for (i = 0; environ[i] != NULL; i++)
+	{
+		printf("%s\n", environ[i]);
+	}
+
+	return (0);
+}
+
+int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv)
 {
 	char *line = NULL;
 	size_t len = 0;
-	pid_t pid;
+	ssize_t read;
 	char *args[2];
-	char *cmd_path;
 
 	while (1)
 	{
 		printf("$ ");
-		if (getline(&line, &len, stdin) == -1)
-		{
-			printf("\n");
-			break;
-		}
-
-		line[strcspn(line, "\n")] = '\0';
-
-		if (strlen(line) == 0)
-			continue;
-
-		if (strcmp(line, "exit") == 0)
+		read = getline(&line, &len, stdin);
+		if (read == -1)
 		{
 			free(line);
-			exit(0);
+			exit(EXIT_FAILURE);
 		}
 
-		cmd_path = find_command_in_path(line);
+		line[strcspn(line, "\n")] = 0;
+		args[0] = line;
 
-		if (cmd_path)
+		if (strcmp(args[0], "exit") == 0)
 		{
-			pid = fork();
-			if (pid == 0)
-			{
-				if (execve(cmd_path, args, NULL) == -1)
-				{
-					perror(line);
-					exit(EXIT_FAILURE);
-				}
-			}
-			else if (pid > 0)
-			{
-				wait(NULL);
-			}
-			else
-			{
-				perror("fork");
-			}
-			free(cmd_path);
+			exit(EXIT_SUCCESS);
+		}
+		else if (strcmp(args[0], "env") == 0)
+		{
+			print_env(args);
 		}
 		else
 		{
-			printf("./hsh: 1: %s: not found\n", line);
+			if (fork() == 0)
+			{
+				execve(args[0], args, environ);
+				perror(args[0]);
+				exit(EXIT_FAILURE);
+			}
+			wait(NULL);
 		}
 	}
 
