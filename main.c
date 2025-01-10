@@ -1,18 +1,51 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/wait.h>
 
-int main()
+int main(void)
 {
 	char *command = NULL;
 	size_t bufsize = 0;
-	printf("$ ");
+	pid_t pid;
 
-	if (getline(&command, &bufsize, stdin) == -1)
+	while (1)
 	{
-		perror("Error reading command");
-		exit(EXIT_FAILURE);
+		printf("$ ");
+		if (getline(&command, &bufsize, stdin) == -1)
+		{
+			if (feof(stdin))
+			{
+				free(command);
+				printf("\n");
+				break;
+			}
+			perror("Error reading command");
+			free(command);
+			exit(EXIT_FAILURE);
+		}
+		command[strcspn(command, "\n")] = '\0';
+		if (strlen(command) == 0)
+			continue;
+
+		pid = fork();
+		if (pid == 0)
+		{
+			if (execlp(command, command, NULL) == -1)
+				perror(command);
+			exit(EXIT_FAILURE);
+		}
+		else if (pid > 0)
+		{
+			wait(NULL);
+		}
+		else
+		{
+			perror("Fork failed");
+		}
 	}
-	printf("You entered: %s", command);
-	free(command);
-	return 0;
+
+	return (0);
 }
+
