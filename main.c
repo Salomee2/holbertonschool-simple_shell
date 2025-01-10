@@ -10,10 +10,8 @@ int main(void)
 	char *line = NULL;
 	size_t len = 0;
 	pid_t pid;
+	char *args[2];
 	char *cmd_path;
-	char *token;
-	char *args[100];
-	int i;
 
 	while (1)
 	{
@@ -25,20 +23,12 @@ int main(void)
 		}
 
 		line[strcspn(line, "\n")] = '\0';
+
 		if (strlen(line) == 0)
 			continue;
 
-		i = 0;
-		token = strtok(line, " ");
-		while (token != NULL)
-		{
-			args[i] = token;
-			i++;
-			token = strtok(NULL, " ");
-		}
-		args[i] = NULL;
+		cmd_path = find_command_in_path(line);
 
-		cmd_path = find_command_in_path(args[0]);
 		if (cmd_path)
 		{
 			pid = fork();
@@ -46,7 +36,7 @@ int main(void)
 			{
 				if (execve(cmd_path, args, NULL) == -1)
 				{
-					perror(args[0]);
+					perror(line);
 					exit(EXIT_FAILURE);
 				}
 			}
@@ -62,7 +52,7 @@ int main(void)
 		}
 		else
 		{
-			printf("./hsh: 1: %s: not found\n", args[0]);
+			printf("./hsh: 1: %s: not found\n", line);
 		}
 	}
 
